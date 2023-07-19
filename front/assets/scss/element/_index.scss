@@ -1,0 +1,32 @@
+@forward 'element-plus/theme-chalk/src/common/var.scss' with (
+  $colors: (
+    'white': #ffffff,
+    'black': #000000,
+    'primary': (
+      'base': #5e35b1
+    ),
+    'success': (
+      'base': #67c23a
+    ),
+    'warning': (
+      'base': #e6a23c
+    ),
+    'danger': (
+      'base': #f56c6c
+    ),
+    'error': (
+      'base': #f56c6c
+    ),
+    'info': (
+      'base': #909399
+    )
+  ),
+  $font-size: (
+    'extra-large': 18px,
+    'large': 16px,
+    'medium': 14px,
+    'base': 13px,
+    'small': 11px,
+    'extra-small': 10px
+  )
+);

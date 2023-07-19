@@ -1,0 +1,2 @@
+- Page d'accueil : récap des évènements où on est inscrit
+- A l'ajout d'un event, envoyer une notif à tout le bureau avec des boutons pour participer ou non
