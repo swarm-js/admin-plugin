@@ -12,4 +12,5 @@ export interface AdminPluginOptions {
   lastnameField: string
   emailField: string
   avatarField: string
+  defaultCountry: string
 }

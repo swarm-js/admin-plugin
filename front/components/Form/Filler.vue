@@ -45,6 +45,8 @@ import DateType from './Types/Date'
 import HourType from './Types/Hour'
 import MoneyType from './Types/Money'
 
+const conf = inject('conf')
+
 const types = {
   array: ArrayType,
   subform: SubformType,
@@ -140,7 +142,7 @@ for (let key in props.conf) {
           }
 
           const pn = parsePhoneNumber(value, {
-            regionCode: 'FR'
+            regionCode: conf.defaultCountry ?? 'US'
           })
           if (!pn.valid)
             return callback(new Error(t('Please enter a valid phone number')))

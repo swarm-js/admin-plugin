@@ -1,5 +1,5 @@
 <template>
-  <component :is="types[tabConf.type]" :conf="tabConf" />
+  <component :is="types[tabConf.type]" :conf="tabConf.conf" />
 </template>
 
 <script setup>
@@ -14,4 +14,6 @@ const router = useRouter()
 const conf = inject('conf')
 const tabConf = (conf.value.tabs ?? []).find(t => t.id === route.params.tabId)
 if (!tabConf) router.push('/')
+
+useState('title').value = tabConf.name
 </script>

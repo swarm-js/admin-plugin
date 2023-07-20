@@ -84,6 +84,7 @@ app.use(AdminPlugin, {
   themeColor: '#ffa000',
   logoBackgroundColor: '#fff',
   title: 'SwarmJS Admin plugin test app',
+  defaultCountry: 'FR',
   tabs: [
     createCrud(
       'users',
@@ -116,9 +117,18 @@ app.use(AdminPlugin, {
         },
         columns: [
           { path: 'avatar', formatter: 'image', float: 'left', width: 50 },
-          { path: 'firstname', label: 'First name' },
-          { path: 'lastname', label: 'Last name', width: 400 },
-          { path: 'email', label: 'Email address', float: 'right', width: 200 }
+          { path: 'firstname', label: 'First name', sortable: true },
+          {
+            path: 'lastname',
+            label: 'Last name',
+            width: 400,
+            sortable: true
+          },
+          {
+            label: 'Email address',
+            width: 200,
+            template: `<strong>Email is {{row.email}}</strong>`
+          }
         ]
       }
     )

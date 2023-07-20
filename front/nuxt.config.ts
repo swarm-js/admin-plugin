@@ -62,6 +62,11 @@ export default defineNuxtConfig({
 
   // vite plugins
   vite: {
+    resolve: {
+      alias: {
+        vue: 'vue/dist/vue.esm-bundler'
+      }
+    },
     css: {
       preprocessorOptions: {
         scss: {

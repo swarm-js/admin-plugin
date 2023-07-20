@@ -2,11 +2,14 @@ import { AdminPluginTab } from '../interfaces/AdminPluginTab'
 import { AdminPluginTabMeta } from '../interfaces/AdminPluginTabMeta'
 
 interface CrudColumn {
-  path: string
+  path?: string
+  formatter?: string
+  template?: string
   label?: string
   width?: number
   float?: 'left' | 'right'
-  formatter?: string
+  sortable?: boolean
+  sortField?: string
 }
 
 interface CreateCrudOptions {
@@ -16,6 +19,8 @@ interface CreateCrudOptions {
   edit: boolean
   delete: boolean
   fields: { [key: string]: any }
+  sort: string
+  limit: number
   columns: CrudColumn[]
 }
 
@@ -33,6 +38,8 @@ export function createCrud (
     delete: false,
     fields: {},
     columns: [],
+    sort: '_id',
+    limit: 10,
     ...conf
   }
 

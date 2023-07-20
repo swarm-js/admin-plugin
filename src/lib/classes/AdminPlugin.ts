@@ -1,5 +1,9 @@
 import { AdminPluginOptions } from '../interfaces/AdminPluginOptions'
 import path from 'path'
+import { Crud } from '@swarmjs/crud'
+import { AdminPluginTab } from '../interfaces/AdminPluginTab'
+import { FastifyReply } from '@swarmjs/core'
+import { NotFound } from 'http-errors'
 
 let swarm: any
 let conf: AdminPluginOptions
@@ -20,6 +24,7 @@ export class AdminPlugin {
       lastnameField: 'lastname',
       emailField: 'email',
       avatarField: 'avatar',
+      defaultCountry: 'US',
       ...options
     }
 
@@ -45,7 +50,7 @@ export class AdminPlugin {
         method: 'GET',
         route: '/user',
         title: 'Returns user details',
-        access: ['swarm:loggedIn'],
+        access: [conf.userAccessKey],
         returns: [
           {
             code: 200,
@@ -73,7 +78,7 @@ export class AdminPlugin {
         method: 'GET',
         route: '/conf',
         title: 'Returns plugin configuration',
-        access: ['swarm:loggedIn'],
+        access: [conf.userAccessKey],
         returns: [
           {
             code: 200,
@@ -87,6 +92,7 @@ export class AdminPlugin {
                 themeColor: { type: 'string' },
                 logoBackgroundColor: { type: 'string' },
                 title: { type: 'string' },
+                defaultCountry: { type: 'string' },
                 tabs: {
                   type: 'array',
                   items: {
@@ -102,6 +108,180 @@ export class AdminPlugin {
                   }
                 }
               }
+            }
+          }
+        ]
+      }
+    )
+
+    swarm.controllers.addMethod(
+      conf.controllerName,
+      AdminPlugin.list(swarm, conf),
+      {
+        method: 'GET',
+        route: '/tab/:tabId/crud',
+        title: 'List items in a model',
+        access: [conf.userAccessKey],
+        parameters: [
+          { name: 'tabId', schema: { type: 'string' }, description: 'Tab ID' }
+        ],
+        returns: [
+          {
+            code: 200,
+            description: 'Item list',
+            mimeType: 'application/json',
+            schema: {
+              type: 'object',
+              properties: {
+                docs: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    additionalProperties: true
+                  }
+                },
+                page: {
+                  type: 'number'
+                },
+                limit: {
+                  type: 'number'
+                },
+                total: {
+                  type: 'number'
+                },
+                maxPage: {
+                  type: 'number'
+                }
+              }
+            }
+          }
+        ]
+      }
+    )
+
+    swarm.controllers.addMethod(
+      conf.controllerName,
+      AdminPlugin.get(swarm, conf),
+      {
+        method: 'GET',
+        route: '/tab/:tabId/crud/:id',
+        title: 'Get item in a model',
+        access: [conf.userAccessKey],
+        parameters: [
+          { name: 'tabId', schema: { type: 'string' }, description: 'Tab ID' },
+          {
+            name: 'id',
+            schema: { type: 'string', pattern: '^[0-9a-f]{24}$' },
+            description: 'Item ID'
+          }
+        ],
+        returns: [
+          {
+            code: 200,
+            description: 'Item',
+            mimeType: 'application/json',
+            schema: {
+              type: 'object',
+              additionalProperties: true
+            }
+          }
+        ]
+      }
+    )
+
+    swarm.controllers.addMethod(
+      conf.controllerName,
+      AdminPlugin.create(swarm, conf),
+      {
+        method: 'POST',
+        route: '/tab/:tabId/crud',
+        title: 'Create item in a model',
+        access: [conf.userAccessKey],
+        parameters: [
+          { name: 'tabId', schema: { type: 'string' }, description: 'Tab ID' }
+        ],
+        accepts: {
+          mimeType: 'application/json',
+          schema: {
+            type: 'object',
+            additionalProperties: true
+          }
+        },
+        returns: [
+          {
+            code: 201,
+            description: 'Item created',
+            mimeType: 'application/json',
+            schema: {
+              type: 'object',
+              properties: {}
+            }
+          }
+        ]
+      }
+    )
+
+    swarm.controllers.addMethod(
+      conf.controllerName,
+      AdminPlugin.update(swarm, conf),
+      {
+        method: 'PATCH',
+        route: '/tab/:tabId/crud/:id',
+        title: 'Update item in a model',
+        access: [conf.userAccessKey],
+        parameters: [
+          { name: 'tabId', schema: { type: 'string' }, description: 'Tab ID' },
+          {
+            name: 'id',
+            schema: { type: 'string', pattern: '^[0-9a-f]{24}$' },
+            description: 'Item ID'
+          }
+        ],
+        accepts: {
+          mimeType: 'application/json',
+          schema: {
+            type: 'object',
+            additionalProperties: true
+          }
+        },
+        returns: [
+          {
+            code: 200,
+            description: 'Item updated',
+            mimeType: 'application/json',
+            schema: {
+              type: 'object',
+              properties: {}
+            }
+          }
+        ]
+      }
+    )
+
+    swarm.controllers.addMethod(
+      conf.controllerName,
+      AdminPlugin.update(swarm, conf),
+      {
+        method: 'DELETE',
+        route: '/tab/:tabId/crud/:id',
+        title: 'Delete item in a model',
+        access: [conf.userAccessKey],
+        parameters: [
+          { name: 'tabId', schema: { type: 'string' }, description: 'Tab ID' },
+          {
+            name: 'id',
+            schema: { type: 'string', pattern: '^[0-9a-f]{24}$' },
+            description: 'Item ID'
+          }
+        ],
+        returns: [
+          {
+            code: 204,
+            description: 'Item deleted',
+            mimeType: 'application/json',
+            schema: {
+              type: 'object',
+              properties: {}
             }
           }
         ]
@@ -129,8 +309,64 @@ export class AdminPlugin {
         logo: conf.logo,
         themeColor: conf.themeColor,
         logoBackgroundColor: conf.logoBackgroundColor,
-        title: conf.title
+        title: conf.title,
+        defaultCountry: conf.defaultCountry
       }
+    }
+  }
+
+  static list (_: any, conf: AdminPluginOptions) {
+    return async function listItems (request: any, reply: FastifyReply) {
+      const tab = conf.tabs.find(
+        (tab: AdminPluginTab) => tab.id === request.params.tabId
+      )
+      if (!tab) throw new NotFound()
+      const crud = new Crud(tab.conf.model)
+      return crud.list(request, reply)
+    }
+  }
+
+  static create (_: any, conf: AdminPluginOptions) {
+    return async function createItem (request: any, reply: FastifyReply) {
+      const tab = conf.tabs.find(
+        (tab: AdminPluginTab) => tab.id === request.params.tabId
+      )
+      if (!tab) throw new NotFound()
+      const crud = new Crud(tab.conf.model)
+      return crud.create(request, reply)
+    }
+  }
+
+  static get (_: any, conf: AdminPluginOptions) {
+    return async function getItem (request: any, reply: FastifyReply) {
+      const tab = conf.tabs.find(
+        (tab: AdminPluginTab) => tab.id === request.params.tabId
+      )
+      if (!tab) throw new NotFound()
+      const crud = new Crud(tab.conf.model)
+      return crud.get(request, reply)
+    }
+  }
+
+  static update (_: any, conf: AdminPluginOptions) {
+    return async function updateItem (request: any, reply: FastifyReply) {
+      const tab = conf.tabs.find(
+        (tab: AdminPluginTab) => tab.id === request.params.tabId
+      )
+      if (!tab) throw new NotFound()
+      const crud = new Crud(tab.conf.model)
+      return crud.update(request, reply)
+    }
+  }
+
+  static delete (_: any, conf: AdminPluginOptions) {
+    return async function deleteItem (request: any, reply: FastifyReply) {
+      const tab = conf.tabs.find(
+        (tab: AdminPluginTab) => tab.id === request.params.tabId
+      )
+      if (!tab) throw new NotFound()
+      const crud = new Crud(tab.conf.model)
+      return crud.delete(request, reply)
     }
   }
 }

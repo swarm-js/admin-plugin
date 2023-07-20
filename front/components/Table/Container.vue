@@ -1,59 +1,98 @@
 <template>
   <div class="table-container">
     <div class="header">
-      <div style="width: 50px" v-if="checkable">
+      <div style="width: 20px" v-if="checkable">
         <el-checkbox v-model="selectAll" @change="handleSelectAll" />
       </div>
       <div
         v-for="(item, idx) in leftFixedFields"
         :key="'left' + idx"
         :style="{ width: item.width + 'px' }"
+        @click="handleSort(item)"
       >
         {{ item.label }}
+        <span
+          v-if="
+            item.sortable &&
+            [item.sortField, `-${item.sortField}`].includes(sort)
+          "
+        >
+          <font-awesome-icon
+            :icon="['fas', sort === item.sortField ? 'caret-up' : 'caret-down']"
+          />
+        </span>
       </div>
       <div class="more-fields" ref="headMore" @scroll="syncScroll">
         <div
           v-for="(item, idx) in scrollableFields"
           :key="'scrollable' + idx"
           :style="{ width: item.width + 'px' }"
+          @click="handleSort(item)"
         >
           {{ item.label }}
+          <span
+            v-if="
+              item.sortable &&
+              [item.sortField, `-${item.sortField}`].includes(sort)
+            "
+          >
+            <font-awesome-icon
+              :icon="[
+                'fas',
+                sort === item.sortField ? 'caret-up' : 'caret-down'
+              ]"
+            />
+          </span>
         </div>
       </div>
       <div
         v-for="(item, idx) in rightFixedFields"
         :key="'right' + idx"
         :style="{ width: item.width + 'px' }"
+        @click="handleSort(item)"
       >
         {{ item.label }}
+        <span
+          v-if="
+            item.sortable &&
+            [item.sortField, `-${item.sortField}`].includes(sort)
+          "
+        >
+          <font-awesome-icon
+            :icon="['fas', sort === item.sortField ? 'caret-up' : 'caret-down']"
+          />
+        </span>
       </div>
       <div style="width: 60px" v-if="openable"></div>
     </div>
 
     <div class="list">
-      <div class="line" v-for="(line, idx) in data" :key="idx">
-        <div style="width: 50px" v-if="checkable">
-          <el-checkbox
-            :modelValue="innerChecked.includes(getLineId(line))"
-            @change="toggleLine(line)"
-          />
+      <el-skeleton :rows="5" animated v-if="loading"></el-skeleton>
+      <template v-else>
+        <div class="line" v-for="(line, idx) in data" :key="idx">
+          <div style="width: 20px" v-if="checkable">
+            <el-checkbox
+              :modelValue="innerChecked.includes(getLineId(line))"
+              @change="toggleLine(line)"
+            />
+          </div>
+          <slot name="left" :row="line" :idx="idx" />
+          <div class="more-fields" ref="more" @scroll="syncScroll">
+            <slot :row="line" :idx="idx" />
+          </div>
+          <slot name="right" :row="line" :idx="idx" />
+          <div style="width: 60px" v-if="openable">
+            <el-button class="arrow" @click="$emit('open', line)">
+              <font-awesome-icon icon="chevron-right" />
+            </el-button>
+          </div>
         </div>
-        <slot name="left" :row="line" :idx="idx" />
-        <div class="more-fields" ref="more" @scroll="syncScroll">
-          <slot :row="line" :idx="idx" />
-        </div>
-        <slot name="right" :row="line" :idx="idx" />
-        <div style="width: 60px" v-if="openable">
-          <el-button class="arrow" @click="$emit('open', line)">
-            <font-awesome-icon icon="chevron-right" />
-          </el-button>
-        </div>
-      </div>
 
-      <el-empty
-        v-if="data.length === 0"
-        :description="$t('Nothing to show')"
-      ></el-empty>
+        <el-empty
+          v-if="data.length === 0"
+          :description="$t('Nothing to show')"
+        ></el-empty>
+      </template>
     </div>
   </div>
 </template>
@@ -63,9 +102,15 @@ export default {
   props: {
     data: {},
     checked: {},
+    sort: { type: String, default: '_id' },
+    defaultSort: { type: String, default: '_id' },
     idField: {
       type: String,
       default: 'id'
+    },
+    loading: {
+      type: Boolean,
+      default: false
     }
   },
   data () {
@@ -104,6 +149,14 @@ export default {
     }
   },
   methods: {
+    handleSort (item) {
+      if (!item.sortable) return
+      if (this.sort === item.sortField)
+        this.$emit('update:sort', `-${item.sortField}`)
+      else if (this.sort === `-${item.sortField}`)
+        this.$emit('update:sort', this.defaultSort)
+      else this.$emit('update:sort', item.sortField)
+    },
     getLineId (line) {
       return line[this.idField]
     },
@@ -149,8 +202,10 @@ export default {
             )
               continue
             this.scrollableFields.push({
+              sortField: child.props.sortField ?? '',
               label: child.props.label ?? '',
-              width: child.props.width ?? 200
+              width: child.props.width ?? 200,
+              sortable: child.props.sortable ?? false
             })
           }
         }
@@ -166,8 +221,10 @@ export default {
             )
               continue
             this.leftFixedFields.push({
+              sortField: child.props.sortField ?? '',
               label: child.props.label ?? '',
-              width: child.props.width ?? 200
+              width: child.props.width ?? 200,
+              sortable: child.props.sortable ?? false
             })
           }
         }
@@ -176,6 +233,7 @@ export default {
       if (this.$slots.right) {
         const rightLine = this.$slots.right()
         for (let line of rightLine ?? []) {
+          if (line.children instanceof Array === false) line.children = [line]
           for (let child of line.children ?? []) {
             if (
               ['table-column', 'TableColumn'].includes(child.type?.name) ===
@@ -183,8 +241,10 @@ export default {
             )
               continue
             this.rightFixedFields.push({
+              sortField: child.props.sortField ?? '',
               label: child.props.label ?? '',
-              width: child.props.width ?? 200
+              width: child.props.width ?? 200,
+              sortable: child.props.sortable ?? false
             })
           }
         }
@@ -296,7 +356,6 @@ $shadow: rgba(0, 0, 0, 0.3);
 
     > div,
     .more-fields > div {
-      padding: 25px 0;
       flex-shrink: 0;
       min-height: 60px;
       display: flex;

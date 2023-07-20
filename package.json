@@ -45,6 +45,7 @@
     "@fastify/static": "^6.10.2",
     "@simplewebauthn/browser": "^7.2.0",
     "@simplewebauthn/server": "^7.2.0",
+    "@swarmjs/crud": "^1.2.5",
     "@swarmjs/mail": "^1.0.0",
     "argon2": "^0.30.3",
     "axios": "^1.4.0",

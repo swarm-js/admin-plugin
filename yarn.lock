@@ -882,6 +882,14 @@
     http-errors "^2.0.0"
     require-main-filename "^2.0.0"
 
+"@swarmjs/crud@^1.2.5":
+  version "1.2.5"
+  resolved "https://registry.yarnpkg.com/@swarmjs/crud/-/crud-1.2.5.tgz#ca8b15c5c77c4a4b54c3ec3a8d1b67ee8af6ce2c"
+  integrity sha512-wPjSU7rGwP2Wtt0kH9IliO1L+BlqERlwpy3JZvh7Nj1clynF4qcWIO/NsIQDqFmaSz2y0C5MRYuIHjbXQIA6Ow==
+  dependencies:
+    http-errors "^2.0.0"
+    qs "^6.11.2"
+
 "@swarmjs/mail@^1.0.0":
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/@swarmjs/mail/-/mail-1.0.0.tgz#7f84f812bbe2f5799441eb0178c4e8861ce40b97"
