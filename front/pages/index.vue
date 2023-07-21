@@ -67,7 +67,7 @@ const conf = inject('conf')
 
 <style lang="scss">
 .tab-preview {
-  border: 1px solid #ccc;
+  border: 1px solid #e7e7e7;
   border-radius: 4px;
   cursor: pointer;
   padding: 20px;

@@ -1,5 +1,6 @@
 <template>
   <div class="crud-type">
+    <form-modal ref="modal" />
     <table-container
       :data="list"
       v-model:checked="checked"
@@ -94,19 +95,32 @@ const props = defineProps({
 })
 
 const conf = inject('conf')
+const modal = ref(null)
 
 useState('actions').value = []
-useState('buttons').value = [
-  props.conf.create
-    ? {
-        label: t('Add'),
-        type: 'success',
-        action () {
-          addItem()
+
+function refreshButtons () {
+  useState('buttons').value = [
+    checked.value.length
+      ? {
+          label: t('Delete selected items'),
+          type: 'danger',
+          action () {
+            deleteSelected()
+          }
         }
-      }
-    : null
-].filter(a => a !== null)
+      : null,
+    props.conf.create
+      ? {
+          label: t('Add'),
+          type: 'success',
+          action () {
+            addItem()
+          }
+        }
+      : null
+  ].filter(a => a !== null)
+}
 
 const route = useRoute()
 
@@ -188,6 +202,14 @@ const list = ref([])
 const loading = ref(false)
 const api = useApi()
 
+watch(
+  [checked],
+  _ => {
+    refreshButtons()
+  },
+  { deep: true, immediate: true }
+)
+
 function refreshUrl () {
   history.pushState(
     {},
@@ -202,16 +224,28 @@ function refreshUrl () {
   )
 }
 
+let cancelController = null
+
 async function refreshList () {
   refreshUrl()
   loading.value = true
-  const ret = await api.get(`/admin/tab/${route.params.tabId}/crud`, {
-    page: page.value,
-    limit: limit.value,
-    sort: sort.value
-  })
+  if (cancelController) {
+    cancelController.abort()
+  }
+  cancelController = new AbortController()
+  const ret = await api.get(
+    `/admin/tab/${route.params.tabId}/crud`,
+    {
+      page: page.value,
+      limit: limit.value,
+      sort: sort.value
+    },
+    { signal: cancelController.signal }
+  )
   list.value = ret.docs
   total.value = ret.total
+  const ids = ret.docs.map(a => a.id)
+  checked.value = checked.value.filter(a => ids.includes(a))
   loading.value = false
 }
 
@@ -221,9 +255,58 @@ watch([page, limit, sort], _ => {
   refreshList()
 })
 
-async function addItem () {}
-async function editItem (item) {}
-async function deleteItem (item) {}
+async function addItem () {
+  const data = await modal.value.fill(t('Add an item'), props.conf.fields, {})
+  await api.post(`/admin/tab/${route.params.tabId}/crud`, data)
+  ElMessage.success(t('Item added'))
+  sort.value = props.conf.sort
+  page.value = 1
+  refreshList()
+}
+
+async function editItem (item) {
+  const oldValues = await api.get(
+    `/admin/tab/${route.params.tabId}/crud/${item.id}`
+  )
+  const data = await modal.value.fill(
+    t('Add an item'),
+    props.conf.fields,
+    oldValues
+  )
+  await api.patch(`/admin/tab/${route.params.tabId}/crud/${item.id}`, data)
+  ElMessage.success(t('Item updated'))
+  refreshList()
+}
+
+async function deleteItem (item) {
+  await ElMessageBox.confirm(
+    t('Are you sure you want to delete this item ?'),
+    t('Warning'),
+    {
+      confirmButtonText: t('OK'),
+      cancelButtonText: t('Cancel'),
+      type: 'warning'
+    }
+  )
+  await api.delete(`/admin/tab/${route.params.tabId}/crud/${item.id}`)
+  ElMessage.success(t('Item deleted'))
+  refreshList()
+}
+async function deleteSelected () {
+  await ElMessageBox.confirm(
+    t('Are you sure you want to delete those items ?'),
+    t('Warning'),
+    {
+      confirmButtonText: t('OK'),
+      cancelButtonText: t('Cancel'),
+      type: 'warning'
+    }
+  )
+  for (let id of checked.value)
+    await api.delete(`/admin/tab/${route.params.tabId}/crud/${id}`)
+  ElMessage.success(t('Items deleted'))
+  refreshList()
+}
 </script>
 
 <style lang="scss">

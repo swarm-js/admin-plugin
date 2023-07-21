@@ -4,6 +4,7 @@
     v-model="opened"
     :title="dialogTitle"
     width="100%"
+    fullscreen
     :before-close="handleClose"
     destroy-on-close
   >

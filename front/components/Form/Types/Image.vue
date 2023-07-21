@@ -2,7 +2,7 @@
   <FileUpload
     v-model="data"
     image
-    :accept="conf.accept ?? '*'"
+    :accept="conf.accept"
     imageBorder="1px solid #ccc"
   />
 </template>

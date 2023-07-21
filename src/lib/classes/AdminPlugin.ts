@@ -3,7 +3,10 @@ import path from 'path'
 import { Crud } from '@swarmjs/crud'
 import { AdminPluginTab } from '../interfaces/AdminPluginTab'
 import { FastifyReply } from '@swarmjs/core'
-import { NotFound } from 'http-errors'
+import { NotFound, BadRequest, NotImplemented } from 'http-errors'
+import crypto from 'crypto'
+import heicConvert from 'heic-convert'
+import AWS from 'aws-sdk'
 
 let swarm: any
 let conf: AdminPluginOptions
@@ -25,6 +28,26 @@ export class AdminPlugin {
       emailField: 'email',
       avatarField: 'avatar',
       defaultCountry: 'US',
+      allowedMimeTypes: [
+        'image/jpeg',
+        'image/jpg',
+        'image/gif',
+        'image/webp',
+        'image/png',
+        'image/heic',
+        'application/pdf',
+        'audio/mp3',
+        'video/webm',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      ],
+      uploadMaxFileSize: 5242880,
+      s3ApiKey: '',
+      s3ApiSecret: '',
+      s3Region: '',
+      s3Endpoint: '',
+      s3Bucket: '',
       ...options
     }
 
@@ -93,6 +116,7 @@ export class AdminPlugin {
                 logoBackgroundColor: { type: 'string' },
                 title: { type: 'string' },
                 defaultCountry: { type: 'string' },
+                allowedMimeTypes: { type: 'array', items: { type: 'string' } },
                 tabs: {
                   type: 'array',
                   items: {
@@ -260,7 +284,7 @@ export class AdminPlugin {
 
     swarm.controllers.addMethod(
       conf.controllerName,
-      AdminPlugin.update(swarm, conf),
+      AdminPlugin.delete(swarm, conf),
       {
         method: 'DELETE',
         route: '/tab/:tabId/crud/:id',
@@ -282,6 +306,28 @@ export class AdminPlugin {
             schema: {
               type: 'object',
               properties: {}
+            }
+          }
+        ]
+      }
+    )
+
+    swarm.controllers.addMethod(
+      conf.controllerName,
+      AdminPlugin.uploadFile(swarm, conf),
+      {
+        method: 'POST',
+        route: '/upload',
+        title: 'Upload a file',
+        access: [conf.userAccessKey],
+        returns: [
+          {
+            code: 201,
+            description: 'File uploaded',
+            mimeType: 'application/json',
+            schema: {
+              type: 'object',
+              properties: { url: { type: 'string' } }
             }
           }
         ]
@@ -310,7 +356,8 @@ export class AdminPlugin {
         themeColor: conf.themeColor,
         logoBackgroundColor: conf.logoBackgroundColor,
         title: conf.title,
-        defaultCountry: conf.defaultCountry
+        defaultCountry: conf.defaultCountry,
+        allowedMimeTypes: conf.allowedMimeTypes
       }
     }
   }
@@ -367,6 +414,68 @@ export class AdminPlugin {
       if (!tab) throw new NotFound()
       const crud = new Crud(tab.conf.model)
       return crud.delete(request, reply)
+    }
+  }
+
+  static uploadFile (_: any, conf: AdminPluginOptions) {
+    return async function uploadFile (request: any, reply: FastifyReply) {
+      if (!conf.s3ApiKey) throw new NotImplemented()
+
+      let file = await request.file()
+      file.data = await file.toBuffer()
+
+      if (request.query.name !== undefined) file.filename = request.query.name
+
+      if (file.mimetype === 'image/heic') {
+        file.data = await heicConvert({
+          buffer: file.data,
+          format: 'JPEG',
+          quality: 0.8
+        })
+        file.filename += '.jpg'
+        file.mimetype = 'image/jpg'
+      }
+
+      if (conf.allowedMimeTypes.includes(file.mimetype) === false) {
+        throw new BadRequest()
+      }
+
+      if (file.size > conf.uploadMaxFileSize) {
+        throw new BadRequest()
+      }
+
+      const s3 = new AWS.S3({
+        accessKeyId: conf.s3ApiKey,
+        secretAccessKey: conf.s3ApiSecret,
+        region: conf.s3Region,
+        s3BucketEndpoint: true,
+        endpoint: conf.s3Endpoint
+      })
+
+      const hash = crypto
+        .createHash('sha1')
+        .update(file.data, 'binary')
+        .digest('hex')
+
+      const url = await new Promise((resolve: any, reject: any) => {
+        s3.upload(
+          {
+            Bucket: conf.s3Bucket,
+            Key: `${hash}-${file.filename}`,
+            Body: file.data,
+            ACL: 'public-read'
+          },
+          async (err: any, data: any) => {
+            if (err) reject(err)
+            else resolve(data.Location)
+          }
+        )
+      })
+
+      reply.code(201)
+      return {
+        url
+      }
     }
   }
 }

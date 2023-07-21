@@ -62,6 +62,17 @@ app.fastify.register(require('@fastify/cors'), {
   allowedHeaders: ['Content-Type', 'Authorization']
 })
 
+app.fastify.register(require('@fastify/multipart'), {
+  limits: {
+    fieldNameSize: 100, // Max field name size in bytes
+    fieldSize: +(process.env.FILE_UPLOAD_LIMIT ?? 5242880), // Max field value size in bytes
+    fields: 10, // Max number of non-file fields
+    fileSize: +(process.env.FILE_UPLOAD_LIMIT ?? 5242880), // For multipart forms, the max file size in bytes
+    files: 1, // Max number of file fields
+    headerPairs: 2000 // Max number of header key=>value pairs
+  }
+})
+
 app.use(AuthPlugin, {
   password: true,
   fido2: true,
@@ -100,18 +111,22 @@ app.use(AdminPlugin, {
         delete: true,
         fields: {
           firstname: {
+            label: 'Prénom',
             type: 'text',
             required: true
           },
           lastname: {
+            label: 'Nom',
             type: 'text',
             required: true
           },
           email: {
+            label: 'Adresse email',
             type: 'email',
             required: true
           },
           avatar: {
+            label: 'Avatar',
             type: 'image'
           }
         },

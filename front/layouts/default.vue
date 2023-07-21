@@ -106,6 +106,7 @@
           <el-button
             v-for="button in buttons"
             :type="button.type"
+            plain
             :color="button.color"
             @click="button.action()"
             >{{ button.label }}</el-button
@@ -115,7 +116,7 @@
             @command="actions[$event].action()"
             trigger="click"
           >
-            <el-button :color="conf.themeColor">
+            <el-button :color="conf.themeColor" plain>
               {{ $t('Actions') }}
               <font-awesome-icon :icon="['fas', 'angle-down']" />
             </el-button>
@@ -218,7 +219,7 @@ $mainColor: v-bind('conf.themeColor');
         }
 
         &.router-link-active {
-          background: $mainColor;
+          background: #333;
           color: #fff;
         }
       }
@@ -401,7 +402,6 @@ $mainColor: v-bind('conf.themeColor');
       }
 
       .el-button {
-        border-radius: 12px;
         padding: 12px 18px;
         height: 36px;
         font-weight: 700;

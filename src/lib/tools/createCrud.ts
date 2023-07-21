@@ -38,7 +38,7 @@ export function createCrud (
     delete: false,
     fields: {},
     columns: [],
-    sort: '_id',
+    sort: '-_id',
     limit: 10,
     ...conf
   }

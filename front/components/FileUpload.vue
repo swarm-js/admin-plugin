@@ -27,11 +27,11 @@
     <el-dialog v-model="opened" :title="$t('Upload a new file')" width="300px">
       <el-upload
         drag
-        :action="`${config.public.apiUrl}/v1/upload`"
+        :action="`${config.public.apiUrl}/admin/upload`"
         :show-file-list="false"
         :on-success="handleUpload"
         :headers="{ Authorization: `Bearer ${userStore.token}` }"
-        :accept="props.accept"
+        :accept="accept ?? conf.allowedMimeTypes.join(',')"
       >
         <el-icon class="el-icon--upload">
           <font-awesome-icon icon="fa-solid fa-upload" />
@@ -47,7 +47,7 @@
 <script setup>
 import { useUserStore } from '~/stores/user'
 const userStore = useUserStore()
-
+const conf = inject('conf')
 const config = useRuntimeConfig()
 
 const props = defineProps({
@@ -56,13 +56,13 @@ const props = defineProps({
     type: Boolean,
     default: false
   },
-  accept: {
-    type: String,
-    default: '*'
-  },
   imageBorder: {
     type: String,
     default: '3px solid #fff'
+  },
+  accept: {
+    type: String,
+    default: undefined
   }
 })
 
@@ -84,10 +84,9 @@ const handleUpload = response => {
     background: #fff no-repeat center center;
     background-size: cover;
     border: 3px solid #fff;
-    border-radius: 96px;
+    border-radius: 12px;
     height: 96px;
     width: 96px;
-    margin: 0 auto;
   }
 }
 </style>

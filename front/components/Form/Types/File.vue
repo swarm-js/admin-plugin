@@ -1,5 +1,5 @@
 <template>
-  <FileUpload v-model="data" :accept="conf.accept ?? '*'" />
+  <FileUpload v-model="data" :accept="conf.accept" />
 </template>
 
 <script setup>
