@@ -58,6 +58,7 @@ let loading = ref(true)
 let conf = ref({})
 let api = useApi()
 provide('conf', conf)
+provide('api', api)
 
 onMounted(async () => {
   let loggedIn = false

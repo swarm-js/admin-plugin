@@ -8,6 +8,7 @@ import {
 import mongoose, { ConnectOptions } from 'mongoose'
 import { AdminPlugin, AdminPluginOptions, createCrud } from '../'
 import path from 'path'
+import { createCustom } from '../lib/tools/createCustom'
 
 require('dotenv').config()
 
@@ -146,7 +147,12 @@ app.use(AdminPlugin, {
           }
         ]
       }
-    )
+    ),
+    createCustom('custom', path.join(__dirname, 'custom.vue'), {
+      name: 'Custom',
+      icon: 'pen',
+      description: 'A custom component calling API'
+    })
   ]
 } as AdminPluginOptions)
 

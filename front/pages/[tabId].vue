@@ -4,9 +4,11 @@
 
 <script setup>
 import TypeCrud from '~/components/PageTypes/Crud'
+import TypeCustom from '~/components/PageTypes/Custom'
 
 const types = {
-  crud: TypeCrud
+  crud: TypeCrud,
+  custom: TypeCustom
 }
 
 const route = useRoute()
