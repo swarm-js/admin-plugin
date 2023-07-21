@@ -1,17 +1,11 @@
 {
   "Cancel": "Annuler",
-  "Save": "Sauvegarder",
   "Add": "Ajouter",
-  "Search ...": "Recherche ...",
-  "Edit": "Modifier",
   "Delete": "Supprimer",
   "Nothing to show": "Rien à montrer",
-  "Page {page} on {maxPage}": "Page {page} sur {maxPage}",
   "Are you sure you want to close the window ? The updates will be lost.": "Voulez-vous vraiment fermer la fenêtre ? Les mises à jour seront perdues.",
   "Warning": "Attention",
   "OK": "OK",
-  "Item saved.": "Élément enregistré.",
-  "Edit item": "Modifier l'élément",
   "Add an item": "Ajouter un élément",
   "Are you sure you want to delete this item ?": "Êtes-vous sûr de bien vouloir supprimer cet élément ?",
   "Item correctly deleted.": "Élément correctement supprimé.",
@@ -28,5 +22,12 @@
   "You must select a maximum of {val} values": "Vous devez sélectionner un maximum de {val} valeurs",
   "Select time": "Sélectionnez l'heure",
   "Home": "Accueil",
-  "Actions": "Actions"
+  "Actions": "Actions",
+  "Delete selected items": "Supprimer les éléments sélectionnés",
+  "Link": "Lien",
+  "Item added": "Élément ajouté",
+  "Item updated": "Élément mis à jour",
+  "Item deleted": "Élément supprimé",
+  "Are you sure you want to delete those items ?": "Voulez-vous vraiment supprimer ces éléments ?",
+  "Items deleted": "Éléments supprimés"
 }
