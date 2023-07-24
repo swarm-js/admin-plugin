@@ -17,7 +17,7 @@ export class AdminPlugin {
 
     conf = {
       controllerName: 'AdminPlugin',
-      userAccessKey: 'admin',
+      userAccessKey: null,
       title: '',
       logo: '',
       themeColor: '#ffa000',
@@ -73,7 +73,7 @@ export class AdminPlugin {
         method: 'GET',
         route: '/user',
         title: 'Returns user details',
-        access: [conf.userAccessKey],
+        access: conf.userAccessKey === null ? null : [conf.userAccessKey],
         returns: [
           {
             code: 200,
@@ -101,7 +101,7 @@ export class AdminPlugin {
         method: 'GET',
         route: '/conf',
         title: 'Returns plugin configuration',
-        access: [conf.userAccessKey],
+        access: conf.userAccessKey === null ? null : [conf.userAccessKey],
         returns: [
           {
             code: 200,
@@ -110,7 +110,9 @@ export class AdminPlugin {
             schema: {
               type: 'object',
               properties: {
-                userAccessKey: { type: 'string' },
+                userAccessKey: {
+                  oneOf: [{ type: 'string' }, { type: 'null' }]
+                },
                 logo: { type: 'string' },
                 themeColor: { type: 'string' },
                 logoBackgroundColor: { type: 'string' },
@@ -145,7 +147,7 @@ export class AdminPlugin {
         method: 'GET',
         route: '/tab/:tabId/crud',
         title: 'List items in a model',
-        access: [conf.userAccessKey],
+        access: conf.userAccessKey === null ? null : [conf.userAccessKey],
         parameters: [
           { name: 'tabId', schema: { type: 'string' }, description: 'Tab ID' }
         ],
@@ -190,7 +192,7 @@ export class AdminPlugin {
         method: 'GET',
         route: '/tab/:tabId/crud/:id',
         title: 'Get item in a model',
-        access: [conf.userAccessKey],
+        access: conf.userAccessKey === null ? null : [conf.userAccessKey],
         parameters: [
           { name: 'tabId', schema: { type: 'string' }, description: 'Tab ID' },
           {
@@ -220,7 +222,7 @@ export class AdminPlugin {
         method: 'POST',
         route: '/tab/:tabId/crud',
         title: 'Create item in a model',
-        access: [conf.userAccessKey],
+        access: conf.userAccessKey === null ? null : [conf.userAccessKey],
         parameters: [
           { name: 'tabId', schema: { type: 'string' }, description: 'Tab ID' }
         ],
@@ -252,7 +254,7 @@ export class AdminPlugin {
         method: 'PATCH',
         route: '/tab/:tabId/crud/:id',
         title: 'Update item in a model',
-        access: [conf.userAccessKey],
+        access: conf.userAccessKey === null ? null : [conf.userAccessKey],
         parameters: [
           { name: 'tabId', schema: { type: 'string' }, description: 'Tab ID' },
           {
@@ -289,7 +291,7 @@ export class AdminPlugin {
         method: 'DELETE',
         route: '/tab/:tabId/crud/:id',
         title: 'Delete item in a model',
-        access: [conf.userAccessKey],
+        access: conf.userAccessKey === null ? null : [conf.userAccessKey],
         parameters: [
           { name: 'tabId', schema: { type: 'string' }, description: 'Tab ID' },
           {
@@ -319,7 +321,7 @@ export class AdminPlugin {
         method: 'POST',
         route: '/upload',
         title: 'Upload a file',
-        access: [conf.userAccessKey],
+        access: conf.userAccessKey === null ? null : [conf.userAccessKey],
         returns: [
           {
             code: 201,

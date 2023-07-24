@@ -2,7 +2,7 @@ import { AdminPluginTab } from './AdminPluginTab'
 
 export interface AdminPluginOptions {
   controllerName: string
-  userAccessKey: string
+  userAccessKey: string | null
   logo: string
   themeColor: string
   logoBackgroundColor: string
